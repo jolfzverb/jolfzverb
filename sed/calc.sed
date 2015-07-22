@@ -15,6 +15,15 @@
 # parse expression
 # we will know about + - * / ()
 s/$/_calc:/
+:_calc_paren2
+/(/{
+  # assume we have correct set paren
+  s/\(.*\)(\([^()]*\))\(.*\)_calc:/\2_calc:paren1:\1VAL\3/
+  b _calc_parse
+  :_calc_paren1
+  s/\(.*\)_calc:\(.*\)VAL\(.*\)/\2\1\3_calc:/
+  b _calc_paren2
+}
 
 
 :_calc_parse
@@ -133,6 +142,12 @@ b calc_return
   s/_calc:div3:/_calc:/
 # jump to return divress
   b _calc_div3
+}
+/_calc:paren1:/{
+# remove return parenress
+  s/_calc:paren1:/_calc:/
+# jump to return parenress
+  b _calc_paren1
 }
 s/_calc://
 b calc_end
