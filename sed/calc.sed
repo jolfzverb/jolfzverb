@@ -104,6 +104,36 @@ b calc_return
 # jump to return parseress
   b _calc_parse2
 }
+/_calc:mul2:/{
+# remove return mulress
+  s/_calc:mul2:/_calc:/
+# jump to return mulress
+  b _calc_mul2
+}
+/_calc:mul3:/{
+# remove return mulress
+  s/_calc:mul3:/_calc:/
+# jump to return mulress
+  b _calc_mul3
+}
+/_calc:div1:/{
+# remove return divress
+  s/_calc:div1:/_calc:/
+# jump to return divress
+  b _calc_div1
+}
+/_calc:div2:/{
+# remove return divress
+  s/_calc:div2:/_calc:/
+# jump to return divress
+  b _calc_div2
+}
+/_calc:div3:/{
+# remove return divress
+  s/_calc:div3:/_calc:/
+# jump to return divress
+  b _calc_div3
+}
 s/_calc://
 b calc_end
 
@@ -265,14 +295,58 @@ b calc_return
 # we assume pattern space of form:
 # \d+ \d+_calc:.*
 # for now - just remove second number
-s/ .*_calc:/_calc:/
+# a b_calc:
+# 0 a_calc:b:a <- add
+# b_calc:sum:a <- dec
+s/\([0-9]\+\) \([0-9]\+\)_calc:/0_calc:\2:\1:/
+:_calc_mul1
+/_calc:0:/{
+  # reached end
+  s/_calc:[0-9]\+:[0-9]\+:/_calc:/
+  b calc_return
+}
+s/^\([0-9]\+\)_calc:\([0-9]\+\):\([0-9]\+\):/\1 \3_calc:mul2:\2:\3:/
+
+b calc_add
+:_calc_mul2
+s/^\([0-9]\+\)_calc:\([0-9]\+\):\([0-9]\+\):/\2_calc:mul3:\1:\3:/
+b calc_dec
+:_calc_mul3
+s/^\([0-9]\+\)_calc:\([0-9]\+\):\([0-9]\+\):/\2_calc:\1:\3:/
+b _calc_mul1
+
+
+
 b calc_return
 
 :calc_div
 # we assume pattern space of form:
 # \d+ \d+_calc:.*
 # for now - just remove second number
-s/ .*_calc:/_calc:/
+# a b_calc:
+# a b_calc:counter(0):b: <-sub
+# counter_calc:a:b: <- inc
+s/\([0-9]\+\) \([0-9]\+\)_calc:/\1_calc:div3:\1:\2:/
+b calc_inc
+:_calc_div3
+s/^\([0-9]\+\)_calc:\([0-9]\+\):\([0-9]\+\):/0_calc:\1:\3:/
+
+
+:_calc_div1
+s/^\([0-9]\+\)_calc:\([0-9]\+\):\([0-9]\+\):/\2 \3_calc:div2:\1:\3:/
+
+b calc_sub
+:_calc_div2
+/^0_calc:/{
+  # reached end
+  s/^\([0-9]\+\)_calc:\([0-9]\+\):\([0-9]\+\):/\2_calc:/
+  # maybe we will need to decrement result here
+  b calc_return
+}
+s/^\([0-9]\+\)_calc:\([0-9]\+\):\([0-9]\+\):/\2_calc:div1:\1:\3:/
+b calc_inc
+
+
 b calc_return
 
 :calc_end
