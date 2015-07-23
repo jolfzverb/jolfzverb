@@ -7,6 +7,7 @@ implemented operators: \*/+-()
 
 ### example:
 $ echo "(60/(4\*5)+34\*(2+3)/((3)\*2))" | sed -f calc.sed
+
 31
 
 
@@ -16,14 +17,21 @@ two numbers are compared mumerically, other combinations - as strings
 
 ### example:
 $ echo "b00 b000" | sed -f compare.sed
+
 lt
+
 $ echo "1222 1222" | sed -f compare.sed
+
 eq
+
 #### integer:
 $ echo "1222 432" | sed -f compare.sed
+
 gt
+
 #### string:
 $ echo "1222 43s" | sed -f compare.sed
+
 lt
 
 
@@ -35,8 +43,9 @@ either strings or numbers, not both.
 Returns sorted list
 
 ### example:
-$ echo "b00 b000 asd 12 asdf ca 000" | sed -f sort.sed
-000 12 asd asdf b00 b000 ca
+$ echo "b00 b000 asd 12 asdf ca 000 ASDF" | sed -f sort.sed
+
+000 12 ASDF asd asdf b00 b000 ca
 
 
 ## countdown.sed
