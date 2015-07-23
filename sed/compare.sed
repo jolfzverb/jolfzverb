@@ -4,6 +4,9 @@
 # [0-9]\+ [0-9]\+ - use numeric comparison
 # else - lexicographical
 # return value is of form "lt|eq|gt"
+# consult calc.sed for more details on how everything works, here I used same 
+# approach
+
 /^[0-9]\+ [0-9]\+$/{
   # numeric
   b numeric
@@ -46,6 +49,10 @@ b _comp_end
 
 :numeric
 s/$/_comp:num1:/
+s/^0*//
+s/ 0*.*_comp://
+s/^ /0 /
+s/ _comp:/ 0_comp:/
 b _comp_len
 :_comp_num1
 /^[0-9]\+ [0-9]\+_comp:/!{
