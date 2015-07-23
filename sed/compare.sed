@@ -4,7 +4,7 @@
 # [0-9]\+ [0-9]\+ - use numeric comparison
 # else - lexicographical
 # return value is of form "lt|eq|gt"
-# consult calc.sed for more details on how everything works, here I used same 
+# consult calc.sed for more details on how everything works, here I used same
 # approach
 
 /^[0-9]\+ [0-9]\+$/{

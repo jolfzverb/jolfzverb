@@ -3,7 +3,7 @@
 # Integer unsigned mathematics with 4 operations (*/+-) and parentheses
 
 # example:
-# $ echo "(60/(4*5)+34*(2+3)/((3)*2))" | sed -f calc.sed         
+# $ echo "(60/(4*5)+34*(2+3)/((3)*2))" | sed -f calc.sed
 # 31
 
 # parse expression
@@ -232,8 +232,8 @@ s/7\(_calc:\)/6\1/
 s/8\(_calc:\)/7\1/
 s/9\(_calc:\)/8\1/
 
-# here we change number of digits in our number, this needs to be done only 
-# when number was of type 10*, in that case after all our permutations it is 
+# here we change number of digits in our number, this needs to be done only
+# when number was of type 10*, in that case after all our permutations it is
 # represented as line of all zeroes - so just remove one.
 /^0*_calc:/s/0//
 

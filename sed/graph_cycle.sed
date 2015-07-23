@@ -1,7 +1,7 @@
 #!/bin/sed -f
 # input is in form of
 # \([0-9]\+ [0-9]\+\)\+
-# where each number is node in directed graph and each pair is connection in 
+# where each number is node in directed graph and each pair is connection in
 # that graph
 # target is to find and print any cycle from that graph
 

@@ -29,24 +29,24 @@ lt
 
 ## sort.sed
 Sort list of values, separated by space. It was written on top of comparison.
-WARNING: Two numbers will be compared numerically, two words, number and 
-word - as strings, this can break sorting sometimes. So make sure you are using 
+WARNING: Two numbers will be compared numerically, two words, number and
+word - as strings, this can break sorting sometimes. So make sure you are using
 either strings or numbers, not both.
 Returns sorted list
 
 ### example:
-$ echo "b00 b000 asd 12 asdf ca 000" | sed -f sort.sed                                                                                                                                    
+$ echo "b00 b000 asd 12 asdf ca 000" | sed -f sort.sed
 000 12 asd asdf b00 b000 ca
 
 
 ## countdown.sed
 This script was written as proof of concept for writing a for cycle in sed.
-Initial counter is passed in pattern space and cycle continues untill it 
+Initial counter is passed in pattern space and cycle continues untill it
 reaches 0 decrementing the counter by one on each iteration.
 
 
 ## decrement.sed
-This script was written as reply to stackoverflow question and contains 
+This script was written as reply to stackoverflow question and contains
 decrement example
 
 

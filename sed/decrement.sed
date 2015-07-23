@@ -42,8 +42,8 @@ s/7$/6/
 s/8$/7/
 s/9$/8/
 
-# here we change number of digits in our number, this needs to be done only 
-# when number was of type 10*, in that case after all our permutations it is 
+# here we change number of digits in our number, this needs to be done only
+# when number was of type 10*, in that case after all our permutations it is
 # represented as line of all zeroes - just remove one.
 /^0*$/s/0//
 
@@ -63,7 +63,7 @@ s/^$/00/
 s/^.$/0&/
 # append it to hold space
 H
-# switch hold and pattern 
+# switch hold and pattern
 x
 # now we manipulate string like "$filename\nXX" where XX is our decremented
 # number.

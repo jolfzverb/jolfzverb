@@ -1,11 +1,11 @@
 #!/bin/sed -f
 # Sort list of values, separated by space
-# be careful, two numbers will be compared algebraically, two words, number and 
+# be careful, two numbers will be compared algebraically, two words, number and
 # word - alpanumerically
 
 # return value is sorted list
 
-# consult calc.sed for more details on how everything works, here I used same 
+# consult calc.sed for more details on how everything works, here I used same
 # approach
 # comparison functions taken from compare.sed with small changes
 
@@ -51,8 +51,8 @@ b _sort_compare
   s/.*_sort:\([^:]*\):\([^:]*\):\([^:]*\)<>:\([^:]*\):/_sort:::<>\2 \3:\4 \1:/
   b _sort_sort1
 }
- 
- 
+
+
 /^gt_sort:/{
   s/.*_sort:\([^:]*\):\([^:]*\):\([^:]*\)<>\([^:]*\):/_sort:\2::\3 \1<>\4:/
   s/_sort:\([^:]*\)::\([^:]*\)<>\([^: ]*\) \?\([^:]*\):/_sort:\1:\3:\2<>\4:/

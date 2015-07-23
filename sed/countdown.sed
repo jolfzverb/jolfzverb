@@ -1,10 +1,10 @@
 #!/bin/sed -f
 # This script was written as proof of concept for writing a for cycle in sed.
-# Initial counter is passed in pattern space and cycle continues untill it 
+# Initial counter is passed in pattern space and cycle continues untill it
 # reaches 0 decrementing the counter by one on each iteration.
 
-# Here I just print counter on each iteration, but you can do whatever you 
-# want. 
+# Here I just print counter on each iteration, but you can do whatever you
+# want.
 :a
   s/^0*//
   t b

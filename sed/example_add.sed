@@ -1,4 +1,4 @@
-# This script is taken from 
+# This script is taken from
 # http://unix.stackexchange.com/questions/36949/addition-with-sed
 # as example of addition/substraction
 s/[0-9]/<&/g
