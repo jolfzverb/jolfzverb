@@ -50,7 +50,7 @@ b _comp_end
 :numeric
 s/$/_comp:num1:/
 s/^0*//
-s/ 0*.*_comp://
+s/ 0*\(.*_comp:\)/ \1/
 s/^ /0 /
 s/ _comp:/ 0_comp:/
 b _comp_len

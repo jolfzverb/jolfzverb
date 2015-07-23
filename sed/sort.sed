@@ -114,7 +114,7 @@ b _sort_end
 
 :numeric
 s/^0*//
-s/ 0*.*_sort://
+s/ 0*\(.*_sort:\)/ \1/
 s/^ /0 /
 s/ _sort:/ 0_sort:/
 s/_sort:/_sort:num1:/
