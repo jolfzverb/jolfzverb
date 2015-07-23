@@ -36,6 +36,10 @@ b lexic
   s/_comp:val2:/_comp:/
   b _comp_val2
 }
+/_comp:lex2:/{
+  s/_comp:lex2:/_comp:/
+  b _comp_lex2
+}
 # we are not jumping anywhere - remove everything and exit
 s/_comp://
 b _comp_end
@@ -109,6 +113,7 @@ b_comp_return
 
 # decrement 2 symbols untill we have at least one 0
 :_comp_2duz
+/|.*_comp:/b _comp_return
 /0.*_comp:/b _comp_return
 s/1 \(.*_comp:\)/0 \1/
 s/ 1\(.*_comp:\)/ 0\1/
@@ -236,6 +241,50 @@ b _comp_2duz
 
 b _comp_return
 :lexic
-s/.*/not implemented/
+/^[a-zA-Z0-9]\+ [a-zA-Z0-9]\+$/!{
+  s/.*/not alnum, use letters and numbers/
+  b _comp_end
+}
+
+s/^\(.*\) \(.*\)/_comp:\1:\2:/
+:_comp_lex1
+
+/^_comp:::/{
+  s/^_comp:::/eq_comp:/
+  b _comp_return
+}
+
+s/_comp:\([^:]\?\)\([^:]*\):\([^:]\?\)\([^:]*\):/\1 \3_comp:lex2:\2:\4:/
+s/^ /| /
+s/ _comp:/ |_comp:/
+b _comp_2duz
+:_comp_lex2
+/^| |_comp:/{
+  s/.*_comp:/_comp:/
+  b _comp_lex1
+}
+/^| .*_comp:/{
+  s/.*_comp:[^:]*:[^:]*:/lt_comp:/
+  b _comp_return
+}
+/^.* |_comp:/{
+  s/.*_comp:[^:]*:[^:]*:/gt_comp:/
+  b _comp_return
+}
+
+/^0 0_comp:/{
+  s/.*_comp:/_comp:/
+  b _comp_lex1
+}
+/^0 .*_comp:/{
+  s/.*_comp:[^:]*:[^:]*:/lt_comp:/
+  b _comp_return
+}
+/^.* 0_comp:/{
+  s/.*_comp:[^:]*:[^:]*:/gt_comp:/
+  b _comp_return
+}
+
+b_comp_return
 
 :_comp_end
