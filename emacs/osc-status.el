@@ -2,6 +2,7 @@
   (with-current-buffer buf
     (message "timer exited")
   )
+  (osc-status-run-process buf)
 )
 (defun osc-status-skip-word (index)
   (let ((match nil))
@@ -57,19 +58,23 @@
   )
 )
 (defun osc-status-filter-output (from to)
-  (with-current-buffer to (erase-buffer))
-  (with-current-buffer from
-    (dolist (string (split-string (buffer-string) "\n"))
-      (with-current-buffer to
-        (if (osc-status-string-needed string)
-          (insert (osc-status-pp string))
+  (with-current-buffer to 
+    (setq buffer-read-only nil)
+    (erase-buffer)
+    (with-current-buffer from
+      (dolist (string (split-string (buffer-string) "\n"))
+        (with-current-buffer to
+          (if (osc-status-string-needed string)
+            (insert (osc-status-pp string))
+          )
         )
       )
     )
+    (org-table-convert-region (point-min) (point-max))
+    (setq point (point-min))
+    (org-table-insert-hline)
+    (setq buffer-read-only t)
   )
-  (org-table-convert-region (point-min) (point-max))
-  (setq point (point-min))
-  (org-table-insert-hline)
 )
 (defun osc-status-sentinel (proc event)
   ;(message event)
@@ -96,6 +101,22 @@
   (set-process-filter process 'osc-status-filter)
   (set-process-sentinel process 'osc-status-sentinel)
 )
+(defun osc-status-edit ()
+  (interactive)
+  (let ((opt1 (completing-read
+	      "Select option: "
+	      '(("removed" 1) ("selected" 2) ("columns" 3))
+	      nil t))
+	(opt2 (completing-read "Select action: " '(("add" 1) ("remove" 2)) nil nil)))
+    (if (string= opt1 "removed")
+	(progn (if (string= opt2 "add")
+		   (add-to-list 'remove-list (read-string (concat "Adding to remove list: "
+								  (format "%s" remove-list) "."))))
+	       (if (string= opt2 "remove")
+		   (setq-local remove-list
+			       (remove (completing-read "What to remove: " remove-list nil t) remove-list)))
+	       (message (concat "Remove list: " (format "%s" remove-list) "."))))))
+
 
 (defun osc-status-mode (project api)
   (set-buffer (get-buffer-create (concat "osc-status-" project)))
@@ -106,22 +127,31 @@
   (setq-local is-new nil)
   (setq-local remove-list '("^GSSDP"))
   (setq-local needed-list '("building" "finished" "failed" "unresolvable" "succeeded"))
+  (setq-local my-highlights
+    '(
+       ("succeeded" . font-lock-string-face)
+       ("building\\|scheduled\\|dispatching\\|finished" . font-lock-function-name-face)
+       ("failed\\|unresolvable\\|broken" . font-lock-warning-face)
+     )
+  )
+  (setq font-lock-defaults '(my-highlights))
+  (font-lock-mode)
   (setq-local skip-word-list '(2 3 5 6 8 9 11 12 13 16 18))
   (setq truncate-lines t)
+  (setq buffer-read-only t)
   (setq major-mode 'osc-status-mode
         mode-name "osc-status")
+  (local-set-key (kbd "C-c e") 'osc-status-edit)
   (osc-status-run-process (current-buffer))
 )
 
 (defun osc-status ()
   (require 'org)
   (let ((project
-    (read-string "Project name: " "Tizen:Common" () "Tizen:Common"))
-    (api nil))
-    (osc-status-mode project api)
+	 (read-string "Project name: " "devel:arm_toolchain:Mobile:asan_stable" ()
+		      "devel:arm_toolchain:Mobile:asan_stable"))
+	(api nil))
+    (osc-status-mode project api)))
 
-  )
-)
-
-
+(provide 'osc-status)
 ;(osc-status)
