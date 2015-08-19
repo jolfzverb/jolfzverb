@@ -30,7 +30,7 @@
   )
 )
 (defun osc-status-is-header-p (string)
-  (string-match "^_;" string)
+  (string-match "^_," string)
 )
 (defun osc-status-match-delete-p (string)
   (let ((match nil))
@@ -42,7 +42,7 @@
 )
 (defun osc-status-match-needed-p (string)
   (let ((match nil))
-    (dolist (m needed-list)
+    (dolist (m selected-list)
       (setq match (or match (string-match m string)))
     )
     match
@@ -64,24 +64,20 @@
     (with-current-buffer from
       (dolist (string (split-string (buffer-string) "\n"))
         (with-current-buffer to
-          (if (osc-status-string-needed string)
-            (insert (osc-status-pp string))
-          )
-        )
-      )
-    )
+	  (let ((ppstring (osc-status-pp string)))
+	    (if (osc-status-string-needed ppstring)
+		(insert ppstring))))))
     (org-table-convert-region (point-min) (point-max))
     (setq point (point-min))
     (org-table-insert-hline)
-    (setq buffer-read-only t)
-  )
-)
+    (setq buffer-read-only t)))
+
 (defun osc-status-sentinel (proc event)
   ;(message event)
   (when (string= event "finished\n")
     (message "timer started")
     (with-current-buffer (process-buffer proc)
-      (setq timer (run-at-time "15 sec" nil 'osc-status-timer-func (process-buffer proc)))
+      (setq timer (if timeout (run-at-time timeout nil 'osc-status-timer-func (process-buffer proc))))
       (osc-status-filter-output temp-buf (current-buffer))
     )
   )
@@ -92,15 +88,22 @@
       (if is-new (progn (with-current-buffer temp-buf (erase-buffer)) (setq is-new nil)))
       (with-current-buffer temp-buf
         (goto-char (point-max))
-        (insert string)
-))))
+        (insert string)))))
+
 (defun osc-status-run-process (buf)
-  (set-buffer buf)
-  (setq process (start-process-shell-command "osc-status" buf command))
-  (setq is-new t)
-  (set-process-filter process 'osc-status-filter)
-  (set-process-sentinel process 'osc-status-sentinel)
-)
+  (with-current-buffer buf
+    (setq process (start-process-shell-command "osc-status" buf command))
+    (setq is-new t)
+    (set-process-filter process 'osc-status-filter)
+    (set-process-sentinel process 'osc-status-sentinel)))
+(defun osc-status-add (list second-list)
+  (dolist (m second-list)
+    (add-to-list 'list second-list)))
+(defun osc-status-remove (list second-list)
+  (dolist (m second-list)
+    (setq list (remove m list))))
+
+
 (defun osc-status-edit ()
   (interactive)
   (let ((opt1 (completing-read
@@ -115,18 +118,34 @@
 	       (if (string= opt2 "remove")
 		   (setq-local remove-list
 			       (remove (completing-read "What to remove: " remove-list nil t) remove-list)))
-	       (message (concat "Remove list: " (format "%s" remove-list) "."))))))
+	       (if (not (string-match "^\\(add\\|remove\\)$" opt2))
+		   (setq-local remove-list (read-string (concat "Adding to remove list: " (format "%s" remove-list) "."))))
+	       (message (concat "Remove list: " (format "%s" remove-list) "."))))
+    (if (string= opt1 "selected")
+	(progn (if (string= opt2 "add")
+		   (add-to-list 'selected-list (read-string (concat "Adding to selected list: "
+								  (format "%s" selected-list) "."))))
+	       (if (string= opt2 "remove")
+		   (setq-local selected-list
+			       (remove (completing-read "What to remove: " selected-list nil t) selected-list)))
+	       (if (not (string-match "^\\(add\\|remove\\)$" opt2))
+		   (setq-local selected-list (read-string (concat "Setting to selected list: " (format "%s" selected-list) "."))))
+	       (message (concat "Remove list: " (format "%s" selected-list) ".")))))
+  (osc-status-filter-output temp-buf (current-buffer)))
+	
 
 
-(defun osc-status-mode (project api)
-  (set-buffer (get-buffer-create (concat "osc-status-" project)))
+(defun osc-status-mode-backup (project api)
+  (let* ((buf-name (concat "osc-status-" project))
+	(bufp (get-buffer buf-name))
+	(buf (if bufp bufp (get-buffer-create buf-name)))) 
+  (set-buffer buf)
   (setq-local temp-buf (get-buffer-create (concat "osc-status-" project "-temp")))
   (setq-local command (concat "osc r --csv " project))
   (setq-local timer nil)
-  (setq-local process nil)
   (setq-local is-new nil)
   (setq-local remove-list '("^GSSDP"))
-  (setq-local needed-list '("building" "finished" "failed" "unresolvable" "succeeded"))
+  (setq-local selected-list '("building" "finished" "failed" "unresolvable" "succeeded"))
   (setq-local my-highlights
     '(
        ("succeeded" . font-lock-string-face)
@@ -142,7 +161,36 @@
   (setq major-mode 'osc-status-mode
         mode-name "osc-status")
   (local-set-key (kbd "C-c e") 'osc-status-edit)
-  (osc-status-run-process (current-buffer))
+  (kill-process (get-buffer-process (current-buffer)))
+  (osc-status-run-process (current-buffer)))
+)
+(defun osc-status-init-buffer (buf)
+  (with-current-buffer buf 
+    (progn (setq-local temp-buf (get-buffer-create (concat (buffer-name) "-temp")))
+	   (setq-local command (concat "osc r --csv " project))
+	   (setq-local timer nil)
+	   (setq-local timeout "15 sec")
+	   (setq-local remove-list '("^GSSDP"))
+	   (setq-local selected-list '("building" "finished" "failed" "unresolvable" "succeeded"))
+	   (setq-local my-highlights
+		       '(("succeeded" . font-lock-string-face)
+			 ("building\\|scheduled\\|dispatching\\|finished" . font-lock-function-name-face)
+			 ("failed\\|unresolvable\\|broken" . font-lock-warning-face)))
+	   (setq font-lock-defaults '(my-highlights))
+	   (font-lock-mode)
+	   (setq-local skip-word-list '(2 3 5 6 8 9 11 12 13 16 18))
+	   (setq truncate-lines t)
+	   (setq buffer-read-only t)
+	   (osc-status-run-process (current-buffer)))))
+
+(defun osc-status-mode (project api)
+  (let ((buf-name (concat "osc-status-" project)))
+    (if (get-buffer buf-name) (kill-buffer (get-buffer buf-name)) ())
+    (set-buffer (get-buffer-create buf-name))
+    (osc-status-init-buffer (current-buffer))
+    (setq major-mode 'osc-status-mode
+	  mode-name "osc-status")
+    (local-set-key (kbd "C-c e") 'osc-status-edit))
 )
 
 (defun osc-status ()
@@ -154,4 +202,4 @@
     (osc-status-mode project api)))
 
 (provide 'osc-status)
-;(osc-status)
+(osc-status)
